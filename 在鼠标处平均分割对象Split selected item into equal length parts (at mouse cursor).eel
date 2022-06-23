@@ -1,0 +1,32 @@
+// Split selected item into equal length parts at mouse cursor (the last part can be shorter)
+// slice length is "mouse cursor position - item start"
+// Note: min slice length is set to "10 ms"
+// EEL script by SPK77 29.8.2014 (edited 24.11.2014)
+
+function split(min_slice_len) local(item, item_pos, orig_c_pos, c_pos, slice_len, slice_pos)
+(
+  CountSelectedMediaItems(0) == 1 ? (
+    (item = GetSelectedMediaItem(0, 0)) ? (
+      item_pos = GetMediaItemInfo_value(item, "D_POSITION");
+      item_len = GetMediaItemInfo_value(item, "D_LENGTH");
+      orig_c_pos = GetCursorPosition();
+      PreventUIRefresh(1);
+      Main_OnCommand(40514, 0); // edit cursor to mouse cursor
+      c_pos = GetCursorPosition();
+      (slice_len = c_pos - item_pos) >= min_slice_len ? (
+        item_pos < c_pos && item_pos + item_len > c_pos ? (
+          while(slice_pos <= item_len) (
+            slice_pos += slice_len;
+            item = SplitMediaItem(item, item_pos + slice_pos);
+          );
+          UpdateArrange();
+        );
+      );
+      SetEditCurPos(orig_c_pos, 0, 0);
+      PreventUIRefresh(-1);
+    );
+  ) : ShowConsoleMsg("Please select exactly one item");
+  Undo_OnStateChange("Split item into equal length parts");
+);
+
+split(0.01); // min slice length is set to "10 ms"
